@@ -10,4 +10,6 @@ echo "A 4th line\n";
 
 echo "5th line\n";
 
+echo "6th line\n";
+
 ?>
