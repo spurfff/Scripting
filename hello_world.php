@@ -8,4 +8,6 @@ echo "Adding another line\n";
 
 echo "A 4th line\n";
 
+echo "5th line\n";
+
 ?>
