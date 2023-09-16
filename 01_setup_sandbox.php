@@ -1,5 +1,22 @@
 <?php
 
+function get_files_to_move($source_directory) {
+	$contents = scandir($source_directory);
+	$files_to_move = [];
+
+	foreach ($contents as $file) {
+		if ($file !== '.' && $file !== '..') {
+			$file_path = $source_directory . '/' . $file;
+			if (is_file($file_path)) {
+				$files_to_move[] = $file_path;
+			} else {
+				echo "'$file' is not a file\n";
+			}
+		}
+	}
+	return $files_to_move;
+}
+
 function make_a_directory($dir) {
 	if (!is_dir($dir)) {
 		if (mkdir($dir, 0755, true)) {
@@ -13,31 +30,23 @@ function make_a_directory($dir) {
 	}
 }
 
-function get_files_to_move($source_directory) {
-	$files_to_move = [];
-	$contents = scandir($source_directory);
-	
-	foreach ($contents as $file) {
-		if ($file !== '.donotdelete' && is_file($source_directory . '/' . $file)) {
-			$files_to_move[] = $source_directory . '/' . $file;
-		} else {
-			echo "An error has occured\n";
-			die("Failed to iterate through...\n");
-		}
-	}
-	return $files_to_move;
-}
+
 
 function move_files_to_directory($files, $target) {
 	foreach ($files as $file) {
-		$filename = basename($file);
-		$destination = $target . '/' . $filename;
-		
-		if (rename($file, $destination)) {
-			echo "Successfully moved \"$file\" to \"$target\"\n";
-		} else {
-			echo "An error has occured\n";
-			die("Failed to move file '$file'...\n");
+		if (basename($file) !== 'Backup' && basename($file) !== '.donotdelete' && basename($file) !== '.' && basename($file) !== '..' && !is_dir($file)) {
+			$filename = basename($file);
+			$destination = $target . '/' . $filename;
+			
+			try {
+				if (rename($file, $destination)) {
+					echo "Successfully moved \"$file\" to \"$target\"\n";
+				} else {
+					throw new Exception("Failed to move file '$file'");
+				}
+			} catch (Exception $e) {
+				echo "An error has occurred: " . $e->getMessage() . "\n";
+			}
 		}
 	}
 }
@@ -77,15 +86,18 @@ function main() {
 
 	$target_directory = $working_directory . '/' . 'Backup';
 
-	make_a_directory($target_directory);
-
 	$files_to_move = get_files_to_move($working_directory);
+
+	make_a_directory($target_directory);
 
 	move_files_to_directory($files_to_move, $target_directory);
 
-	$zip_file_name = basename($target_directory) . '.zip';
-
-	zip_up_directory($target_directory, $zip_file_name);
+	if (class_exists('ZipArchive')) {
+		$zip_file_name = basename($target_directory) . '.zip';
+		zip_up_directory($target_directory, $zip_file_name);
+	} else {
+		echo "The ZipArchive class is not available. Unable to create zip archive.\n";
+	}
 }
 
 main();
