@@ -51,27 +51,26 @@ function move_files_to_directory($files, $target) {
 	}
 }
 
-function zip_up_directory($source_directory, $zip_file_name) {
-	$zip = new ZipArchive();
-	if ($zip->open($zip_file_name, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-		$files = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator($source_directory),
-			RecursiveIteratorIterator::LEAVES_ONLY
-		);
+function zip_up_directory($source_directory, $zip_file_name, $zip_file_destination) {
 
-		foreach ($files as $name => $file) {
-			if (!$file->isDir()) {
-				$file_path = $file->getRealPath();
-				$relative_path = substr($file_path, strlen($source_directory) + 1);
-				$zip->addFile($file_path, $relative_path);
+	
+
+	$zip = new ZipArchive;
+	if ($zip-> open($zip_file_destination, ZipArchive::CREATE ) == TRUE) {
+		$dir = opendir($source_directory);
+		while ($file = readdir($dir)) {
+			if (is_file($source_directory . '/' . $file)) {
+				$pathdir = $source_directory . '/' . $file;
+				$zip -> addFile($pathdir, $file);
 			}
 		}
-		$zip->close();
-		echo "Directory has been zipped up successfully as $zip_file_name\n";
-
+		$zip -> close();
+	}
+	if (file_exists($zip_file_destination)) {
+		echo "Successfully created zip: '$zip_file_destination'\n";
 	} else {
-		echo "An error has occured\n";
-		die("Failed to create zip archive...\n");
+		echo "Failed to create: '$zip_file_destination'\n";
+		die("Exiting...\n");
 	}
 }
 
@@ -94,7 +93,8 @@ function main() {
 
 	if (class_exists('ZipArchive')) {
 		$zip_file_name = basename($target_directory) . '.zip';
-		zip_up_directory($target_directory, $zip_file_name);
+		$zip_file_destination = $working_directory . '/' . $zip_file_name;
+		zip_up_directory($target_directory, $zip_file_name, $zip_file_destination);
 	} else {
 		echo "The ZipArchive class is not available. Unable to create zip archive.\n";
 	}
