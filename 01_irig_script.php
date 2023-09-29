@@ -61,7 +61,7 @@ function zip_up_directory($source_directory, $zip_file_name, $zip_file_destinati
 		while ($file = readdir($dir)) {
 			if (is_file($source_directory . '/' . $file)) {
 				$pathdir = $source_directory . '/' . $file;
-				$zip -> addFile($pathdir, $file);
+				$zip-> addFile($pathdir, $file);
 			}
 		}
 		$zip -> close();
